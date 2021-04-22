@@ -1,0 +1,5 @@
+add_library(utils-stream fstream.cpp)
+target_include_directories(utils-stream PUBLIC ${CMAKE_SOURCE_DIR})
+add_executable(utils-stream-test test.cpp)
+target_link_libraries(utils-stream-test PUBLIC utils-stream GTest::GTest GTest::Main)
+gtest_discover_tests(utils-stream-test)
