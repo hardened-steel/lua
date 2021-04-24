@@ -18,7 +18,10 @@ jobs:
     - name: Install Conan
       id: conan
       uses: turtlebrowser/get-conan@main
-      
+
+    - name: Install Conan remote bincrafters repository
+      run: conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+
     - uses: actions/checkout@v2
 
     - name: Create Build Environment
