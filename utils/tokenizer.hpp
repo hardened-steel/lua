@@ -77,7 +77,7 @@ namespace utils {
 		, tokenize(std::forward<Fn>(tokenize))
 		{}
 	public:
-		using value_type = decltype(Fn(channel));
+		/*using value_type = decltype(Fn(channel));
 		auto get()
 		{
 			return function(channel);
@@ -89,7 +89,7 @@ namespace utils {
 		void close()
 		{
 			channel.close();
-		}
+		}*/
 	};
 
 	template<class Regex, class Fn>
