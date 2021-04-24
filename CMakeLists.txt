@@ -16,12 +16,19 @@ conan_cmake_run(
 	REQUIRES
 		${CONAN_EXTRA_REQUIRES}
 		cmake_findboost_modular/1.69.0@bincrafters/stable
-    	boost/1.73.0
+    	boost/1.75.0
     	gtest/1.10.0
+    OPTIONS
+        boost:without_log=True
+        boost:without_locale=True
+        boost:without_python=True
+        boost:shared=False
+        boost:multithreading=True
 	${CONAN_EXTRA_OPTIONS}
     BASIC_SETUP
     CMAKE_TARGETS
     BUILD missing
+    SETTINGS build_type=${CMAKE_BUILD_TYPE}
 )
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
