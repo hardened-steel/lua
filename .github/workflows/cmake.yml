@@ -32,11 +32,6 @@ jobs:
             os: ubuntu-latest,
             cc: "gcc", cxx: "g++"
           }
-        - {
-            name: "macOS Latest Clang", artifact: "macOS.7z",
-            os: macos-latest,
-            cc: "clang", cxx: "clang++"
-          }
 
     steps:
     - name: Build Boost
