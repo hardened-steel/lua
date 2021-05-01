@@ -32,7 +32,7 @@ TEST(stream, file)
 	EXPECT_TRUE(value == "hello from file"_bytes);
 }
 
-TEST(stream_DISABLED, items)
+TEST(stream, DISABLED_items)
 {
 	using utils::operator""_bytes;
 	const fs::path path = "fstream-test.data";
