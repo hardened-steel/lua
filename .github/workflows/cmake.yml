@@ -38,8 +38,8 @@ jobs:
       id: boost
       uses: egor-tensin/build-boost@v1
       with:
-        version: 1.75.0
-        libraries: filesystem program_options system unit_test_framework
+        version: 1.76.0
+        libraries: program_options system test
         platform: x64
         configuration: Release
 
