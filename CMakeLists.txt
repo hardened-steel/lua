@@ -9,10 +9,8 @@ endif()
 
 include(CTest)
 enable_testing()
-#find_package(GTest REQUIRED)
-#include(GoogleTest)
 
-find_package(Boost 1.75.0 COMPONENTS regex system date_time unit_test_framework REQUIRED)
+find_package(Boost 1.75.0 COMPONENTS system date_time unit_test_framework REQUIRED)
 
 add_subdirectory(utils)
 #add_subdirectory(lexer)

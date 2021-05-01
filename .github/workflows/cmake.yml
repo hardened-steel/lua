@@ -39,7 +39,7 @@ jobs:
       uses: egor-tensin/build-boost@v1
       with:
         version: 1.76.0
-        libraries: program_options system test
+        libraries: program_options system test date_time
         platform: x64
         configuration: Release
 
