@@ -1,4 +1,5 @@
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE utils_io
+#include <boost/test/included/unit_test.hpp>
 #include <iostream>
 #include <utils/channel/channel.hpp>
 #include <utils/channel/input.hpp>
@@ -78,25 +79,24 @@ namespace {
 }
 
 
-
-TEST(utils_io, channel_base)
+BOOST_AUTO_TEST_CASE(channel_base)
 {
 	std::vector<foo> result;
 	result.reserve(2);
 	const char hello[] = "hello world";
 	utils::channel::input ichannel{hello};
-	ASSERT_EQ(ichannel.get(), 'h');
-	ASSERT_EQ(ichannel.get(), 'e');
-	ASSERT_EQ(ichannel.get(), 'l');
-	ASSERT_EQ(ichannel.get(), 'l');
-	ASSERT_EQ(utils::channel::input{hello} >> vectorize, std::vector<char>(hello, hello + sizeof(hello)));
+	BOOST_TEST(ichannel.get() == 'h');
+	BOOST_TEST(ichannel.get() == 'e');
+	BOOST_TEST(ichannel.get() == 'l');
+	BOOST_TEST(ichannel.get() == 'l');
+	BOOST_TEST((utils::channel::input{hello} >> vectorize) == (std::vector<char>(hello, hello + sizeof(hello))));
 }
 
-TEST(utils_io, transform)
+BOOST_AUTO_TEST_CASE(transform)
 {
 	auto pow2 = [](auto& value)
 	{
 		return value * value;
 	};
-	ASSERT_EQ(utils::channel::input({1, 2, 3}) >> utils::channel::transform(pow2) >> vectorize, utils::channel::input({1, 4, 9}) >> vectorize);
+	BOOST_TEST((utils::channel::input({1, 2, 3}) >> utils::channel::transform(pow2) >> vectorize) == (utils::channel::input({1, 4, 9}) >> vectorize));
 }

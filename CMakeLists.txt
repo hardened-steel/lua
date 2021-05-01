@@ -7,38 +7,12 @@ if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE Release)
 endif()
 
-if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
-   message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-   file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/master/conan.cmake" "${CMAKE_BINARY_DIR}/conan.cmake")
-endif()
-include(${CMAKE_BINARY_DIR}/conan.cmake)
-conan_cmake_run(
-	REQUIRES
-		${CONAN_EXTRA_REQUIRES}
-		cmake_findboost_modular/1.69.0@bincrafters/stable
-    	boost/1.75.0
-    	gtest/1.10.0
-    OPTIONS
-        boost:without_log=True
-        boost:without_locale=True
-        boost:without_python=True
-        boost:shared=False
-        boost:multithreading=True
-	${CONAN_EXTRA_OPTIONS}
-    BASIC_SETUP
-    CMAKE_TARGETS
-    BUILD missing
-    SETTINGS build_type=${CMAKE_BUILD_TYPE}
-)
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
-
 include(CTest)
 enable_testing()
-find_package(GTest REQUIRED)
-include(GoogleTest)
+#find_package(GTest REQUIRED)
+#include(GoogleTest)
 
-find_package(Boost COMPONENTS regex system date_time asio REQUIRED)
+find_package(Boost 1.75.0 COMPONENTS regex system date_time unit_test_framework REQUIRED)
 
 add_subdirectory(utils)
 #add_subdirectory(lexer)
@@ -47,10 +21,7 @@ find_package(Threads)
 
 add_library(${PROJECT_NAME} lua.cpp)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
-target_include_directories(${PROJECT_NAME} PUBLIC
-	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-	$<INSTALL_INTERFACE:lua>
-)
+target_link_libraries(${PROJECT_NAME} Boost)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
