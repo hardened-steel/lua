@@ -38,7 +38,7 @@ jobs:
       id: boost
       uses: egor-tensin/build-boost@v1
       with:
-        version: 1.76.0
+        version: 1.75.0
         libraries: program_options system test date_time headers json fiber container serialization stacktrace
         platform: x64
         configuration: Release

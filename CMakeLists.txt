@@ -10,7 +10,7 @@ endif()
 include(CTest)
 enable_testing()
 
-find_package(Boost 1.76.0 COMPONENTS system date_time unit_test_framework REQUIRED)
+find_package(Boost 1.75.0 COMPONENTS system date_time unit_test_framework REQUIRED)
 
 add_subdirectory(utils)
 #add_subdirectory(lexer)
