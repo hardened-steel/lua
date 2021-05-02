@@ -19,7 +19,7 @@ find_package(Threads)
 
 add_library(${PROJECT_NAME} lua.cpp)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
-target_link_libraries(${PROJECT_NAME} Boost)
+target_link_libraries(${PROJECT_NAME} ${BOOST_LIBRARIES})
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
