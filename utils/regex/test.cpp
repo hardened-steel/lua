@@ -4,18 +4,6 @@
 #include <utils/regex/regular.hpp>
 #include <utils/regex/tokenizer.hpp>
 
-#include <cstdlib>
-#include <memory>
-#include <cxxabi.h>
-
-namespace {
-	std::string demangle(const char* name) {
-
-	    int status = -4; // some arbitrary value to eliminate the compiler warning
-	    return abi::__cxa_demangle(name, NULL, NULL, &status);
-	}
-}
-
 BOOST_AUTO_TEST_SUITE(regex)
 
 BOOST_AUTO_TEST_CASE(base)

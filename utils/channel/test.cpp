@@ -7,18 +7,6 @@
 #include <utils/channel/output.hpp>
 #include <utils/channel/transform.hpp>
 
-#include <cstdlib>
-#include <memory>
-#include <cxxabi.h>
-
-namespace {
-	std::string demangle(const char* name) {
-
-	    int status = -4; // some arbitrary value to eliminate the compiler warning
-	    return abi::__cxa_demangle(name, NULL, NULL, &status);
-	}
-}
-
 class foo
 {
 public:

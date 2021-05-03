@@ -61,7 +61,7 @@ namespace utils {
 			auto it = begin;
 			if(token.parse(it, end))
 				return token.create(begin, it);
-			return tokens(it, end);
+			return tokens(begin, end);
 		};
 	}
 
