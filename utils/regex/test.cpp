@@ -65,10 +65,10 @@ BOOST_AUTO_TEST_CASE(tokenizer)
 	auto symbol = match('a', 'z') | match('A', 'Z') | match["_"];
 	auto number = match('0', '9');
 	auto identifier = symbol & *(symbol | number);
-	/*auto token = identifier >> [](const char* b, const char* e) {
+	auto token = identifier >> [](const char* b, const char* e) {
 		return std::string("identifier{\"") + std::string(b, e)  + "\"}";
 	};
-	EXPECT_EQ(token("abcd"), std::string(R"(identifier{"abcd"})"));*/
+	BOOST_TEST(token("abcd") == std::string(R"(identifier{"abcd"})"));
 }
 
 BOOST_AUTO_TEST_CASE(lexer)
