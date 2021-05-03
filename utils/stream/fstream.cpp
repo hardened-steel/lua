@@ -1,97 +1,26 @@
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/io.h>
-#include <sys/mman.h>
-#include <unistd.h>
-
+#include <boost/iostreams/device/mapped_file.hpp>
 #include <system_error>
 #include "fstream.hpp"
 
-namespace {
+namespace bio = boost::iostreams;
 
-	struct FileDescriptor
-	{
-		const int fd;
-	public:
-		FileDescriptor(int fd) noexcept
-		: fd(fd)
-		{}
-		~FileDescriptor() noexcept
-		{
-			close(fd);
-		}
-		operator int() const noexcept
-		{
-			return fd;
-		}
-	};
+namespace {
 
 	struct ROFileMapping
 	{
-		std::size_t length;
-		std::byte* start = nullptr;
-	private:
-		static FileDescriptor OpenFile(const std::filesystem::path& path)
-		{
-			int fd = open(path.string().c_str(), O_RDONLY);
-			if(fd < 0)
-				throw std::system_error(std::make_error_code(static_cast<std::errc>(errno)));
-			return FileDescriptor(fd);
-		}
-		static std::size_t GetFileLength(const FileDescriptor& fd)
-		{
-			struct stat fileInfo = {0};
-			if(fstat(fd, &fileInfo) == -1)
-				throw std::system_error(std::make_error_code(static_cast<std::errc>(errno)));
-			return fileInfo.st_size;
-		}
-		static std::byte* MMapFile(const FileDescriptor& fd, std::size_t length)
-		{
-			auto ptr = mmap(nullptr, length, PROT_READ, MAP_SHARED, fd, 0);
-			if(ptr == MAP_FAILED)
-				throw std::system_error(std::make_error_code(static_cast<std::errc>(errno)));
-			return static_cast<std::byte*>(ptr);
-		}
-		ROFileMapping(FileDescriptor fd)
-		: length(GetFileLength(fd))
-		, start(MMapFile(fd, length))
-		{
-			madvise(start, length, MADV_SEQUENTIAL);
-		}
+		bio::mapped_file_source source;
 	public:
 		ROFileMapping(const std::filesystem::path& path)
-		: ROFileMapping(OpenFile(path))
+		: source(path.string())
 		{}
-		~ROFileMapping() noexcept
-		{
-			if(start && length)
-				munmap(start, length);
-		}
-		ROFileMapping(ROFileMapping&& other) noexcept
-		: length(other.length)
-		, start(other.start)
-		{
-			other.start = nullptr;
-		}
-		ROFileMapping& operator=(ROFileMapping&& other) noexcept
-		{
-			if(this != &other)
-			{
-				length = other.length;
-				start = other.start;
-				other.start = nullptr;
-			}
-			return *this;
-		}
 	public:
 		const std::byte* data() const noexcept
 		{
-			return start;
+			return reinterpret_cast<const std::byte*>(source.data());
 		}
 		std::size_t size() const noexcept
 		{
-			return length;
+			return source.size();
 		}
 	};
 }
@@ -102,8 +31,11 @@ namespace utils::stream {
 	{
 	}
 
-	void ifstream::get(utils::buffer::view<std::byte> view)
+	void ifstream::get(utils::buffer::view<std::byte>& view)
 	{
+		auto chunk = get(view.size());
+		view = view.first(chunk.size());
+		std::copy(chunk.begin(), chunk.end(), view.data());
 	}
 
 	utils::buffer::owner<const std::byte> ifstream::get(std::size_t count)

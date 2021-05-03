@@ -1,6 +1,6 @@
 #pragma once
 #include <system_error>
-#include <utils/regular.hpp>
+#include <utils/regex/regular.hpp>
 #include <utils/stream/items.hpp>
 #include <utils/channel/transform.hpp>
 #include <utils/channel/input.hpp>

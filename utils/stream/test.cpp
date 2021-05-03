@@ -1,4 +1,6 @@
-#include <gtest/gtest.h>
+#define BOOST_TEST_MODULE utils stream unit test
+#include <boost/test/included/unit_test.hpp>
+
 #include <filesystem>
 #include <fstream>
 #include <utils/stream/fstream.hpp>
@@ -22,22 +24,26 @@ namespace {
 	}
 }
 
-TEST(stream, file)
+BOOST_AUTO_TEST_SUITE(stream)
+
+BOOST_AUTO_TEST_CASE(file)
 {
 	using utils::operator""_bytes;
 	const fs::path path = "fstream-test.data";
 	TouchFile(path, "hello from file");
 	utils::stream::ifstream file(path);
 	auto value = file.get(1024);
-	EXPECT_TRUE(value == "hello from file"_bytes);
+	BOOST_TEST(value == "hello from file"_bytes);
 }
 
-TEST(stream, DISABLED_items)
+BOOST_AUTO_TEST_CASE(items)
 {
 	using utils::operator""_bytes;
 	const fs::path path = "fstream-test.data";
 	TouchFile(path, "hello from file");
 	utils::items fchannel = utils::stream::ifstream(path);
 	const auto str = "hello from file"_bytes;
-	EXPECT_TRUE(std::equal(fchannel.begin(), fchannel.end(), str.begin(), str.end()));
+	BOOST_TEST(std::equal(fchannel.begin(), fchannel.end(), str.begin(), str.end()));
 }
+
+BOOST_AUTO_TEST_SUITE_END()

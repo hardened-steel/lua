@@ -13,7 +13,7 @@ namespace utils::stream {
 		ifstream(const std::filesystem::path& path);
 	public:
 		using value_type = utils::buffer::owner<const std::byte>;
-		void get(utils::buffer::view<std::byte>) override;
+		void get(utils::buffer::view<std::byte>&) override;
 		utils::buffer::owner<const std::byte> get(std::size_t count) override;
 		utils::buffer::owner<const std::byte> get() override
 		{

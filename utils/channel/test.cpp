@@ -1,5 +1,6 @@
-#define BOOST_TEST_MODULE utils_io
+#define BOOST_TEST_MODULE utils channel unit test
 #include <boost/test/included/unit_test.hpp>
+
 #include <iostream>
 #include <utils/channel/channel.hpp>
 #include <utils/channel/input.hpp>
@@ -79,7 +80,9 @@ namespace {
 }
 
 
-BOOST_AUTO_TEST_CASE(channel_base)
+BOOST_AUTO_TEST_SUITE(channel)
+
+BOOST_AUTO_TEST_CASE(base)
 {
 	std::vector<foo> result;
 	result.reserve(2);
@@ -100,3 +103,5 @@ BOOST_AUTO_TEST_CASE(transform)
 	};
 	BOOST_TEST((utils::channel::input({1, 2, 3}) >> utils::channel::transform(pow2) >> vectorize) == (utils::channel::input({1, 4, 9}) >> vectorize));
 }
+
+BOOST_AUTO_TEST_SUITE_END()

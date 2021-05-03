@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
-#include <iostream>
+#define BOOST_TEST_MODULE utils regex unit test
+#include <boost/test/included/unit_test.hpp>
 
-#include <utils/regular.hpp>
-#include <utils/tokenizer.hpp>
+#include <utils/regex/regular.hpp>
+#include <utils/regex/tokenizer.hpp>
 
 #include <cstdlib>
 #include <memory>
@@ -16,49 +16,50 @@ namespace {
 	}
 }
 
+BOOST_AUTO_TEST_SUITE(regex)
 
-TEST(utils, regex)
+BOOST_AUTO_TEST_CASE(base)
 {
 	using namespace utils;
-	EXPECT_TRUE(match("abc")("abc11"));
-	EXPECT_FALSE(match("abc")("ab"));
-	EXPECT_TRUE((match("abc") | match("cba"))("abc11"));
-	EXPECT_TRUE((match("abc") | match("cba"))("cba22"));
-	EXPECT_FALSE((match("abc") | match("cba"))("def"));
-	EXPECT_TRUE((*match("a"))("aaa"));
+	BOOST_TEST(match("abc")("abc11"));
+	BOOST_TEST(!match("abc")("ab"));
+	BOOST_TEST((match("abc") | match("cba"))("abc11"));
+	BOOST_TEST((match("abc") | match("cba"))("cba22"));
+	BOOST_TEST(!(match("abc") | match("cba"))("def"));
+	BOOST_TEST((*match("a"))("aaa"));
 	{
 		auto regex = match("ab") & !match("c") & match("d");
-		EXPECT_TRUE(regex("abd"));
-		EXPECT_TRUE(regex("abcd"));
-		EXPECT_FALSE(regex("abed"));
+		BOOST_TEST(regex("abd"));
+		BOOST_TEST(regex("abcd"));
+		BOOST_TEST(!regex("abed"));
 	}
 	{
 		auto regex = match("ab") & +match("c") & match("d");
-		EXPECT_FALSE(regex("abd"));
-		EXPECT_TRUE(regex("abcd"));
-		EXPECT_TRUE(regex("abccd"));
-		EXPECT_TRUE(regex("abcccde"));
-		EXPECT_FALSE(regex("abce"));
+		BOOST_TEST(!regex("abd"));
+		BOOST_TEST(regex("abcd"));
+		BOOST_TEST(regex("abccd"));
+		BOOST_TEST(regex("abcccde"));
+		BOOST_TEST(!regex("abce"));
 	}
 	{
 		auto regex = match["abcdef"];
-		EXPECT_TRUE(regex("a111"));
-		EXPECT_TRUE(regex("b222"));
-		EXPECT_FALSE(regex("g333"));
+		BOOST_TEST(regex("a111"));
+		BOOST_TEST(regex("b222"));
+		BOOST_TEST(!regex("g333"));
 	}
 	{
 		auto symbol = match('a', 'z') | match('A', 'Z') | match("_");
 		auto number = match["1234567890"];
 		auto regex = symbol & *(symbol | number);
-		EXPECT_TRUE(regex("some_value"));
-		EXPECT_TRUE(regex("_"));
-		EXPECT_TRUE(regex("LegalIdentifier"));
-		EXPECT_FALSE(regex("122_bytes"));
-		EXPECT_FALSE(regex(" value"));
+		BOOST_TEST(regex("some_value"));
+		BOOST_TEST(regex("_"));
+		BOOST_TEST(regex("LegalIdentifier"));
+		BOOST_TEST(!regex("122_bytes"));
+		BOOST_TEST(!regex(" value"));
 	}
 }
 
-TEST(utils, tokenizer)
+BOOST_AUTO_TEST_CASE(tokenizer)
 {
 	const auto& match = utils::match;
 	auto symbol = match('a', 'z') | match('A', 'Z') | match["_"];
@@ -70,7 +71,7 @@ TEST(utils, tokenizer)
 	EXPECT_EQ(token("abcd"), std::string(R"(identifier{"abcd"})"));*/
 }
 
-TEST(utils, lexer)
+BOOST_AUTO_TEST_CASE(lexer)
 {
 	const auto& match = utils::match;
 	auto symbol = match('a', 'z') | match('A', 'Z') | match["_"];
@@ -90,3 +91,5 @@ TEST(utils, lexer)
 	//std::cout << tokenize(lexer)("abcd") << std::endl;
 	//std::cout << tokenize(lexer)("1234") << std::endl;
 }
+
+BOOST_AUTO_TEST_SUITE_END()

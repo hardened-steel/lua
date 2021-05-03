@@ -8,7 +8,7 @@ namespace utils::stream {
 	class istream: public utils::channel::ichannel<utils::buffer::owner<const T>>
 	{
 	public:
-		virtual void get(utils::buffer::view<T>) = 0;
+		virtual void get(utils::buffer::view<T>&) = 0;
 		virtual utils::buffer::owner<const T> get(std::size_t count) = 0;
 		utils::buffer::owner<const T> get() override
 		{
