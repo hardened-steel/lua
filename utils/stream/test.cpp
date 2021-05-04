@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(file)
 	BOOST_TEST(value == "hello from file"_bytes);
 }
 
-BOOST_AUTO_TEST_CASE(items)
+BOOST_AUTO_TEST_CASE(items_with_copy)
 {
 	using utils::operator""_bytes;
 	const fs::path path = "fstream-test.data";
@@ -69,14 +69,14 @@ BOOST_AUTO_TEST_CASE(items)
 	BOOST_CHECK_EQUAL(it, fchannel.end());
 }
 
-BOOST_AUTO_TEST_CASE(items2)
+BOOST_AUTO_TEST_CASE(items)
 {
 	using utils::operator""_bytes;
 	const fs::path path = "fstream-test.data";
 	TouchFile(path, "hello from file");
 	utils::items fchannel = utils::stream::ifstream(path);
 	const auto str = "hello from file"_bytes;
-	//BOOST_TEST(std::equal(fchannel.begin(), fchannel.end(), str.begin(), str.end()));
+	BOOST_TEST(std::equal(fchannel.begin(), fchannel.end(), str.begin(), str.end()));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
