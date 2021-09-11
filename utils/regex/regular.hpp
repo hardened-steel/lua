@@ -13,19 +13,19 @@ namespace utils {
 	class regex;
 
 	template<class T>
-	struct regex_result
+	struct match_result
 	{
 		using type = std::vector<T>;
 	};
 
 	template<>
-	struct regex_result<char>
+	struct match_result<char>
 	{
 		using type = std::string;
 	};
 
 	template<class T>
-	using regex_result_t = typename regex_result<T>::type;
+	using match_result_t = typename match_result<T>::type;
 
 	template<class T, std::size_t Size>
 	struct match_sequence_t {};
@@ -82,14 +82,14 @@ namespace utils {
 		}
 		constexpr auto operator()(value_type) const
 		{
-			return regex_result_t<T>(values.begin(), values.end());
+			return match_result_t<T>(values.begin(), values.end());
 		}
 		template<class Regex>
 		constexpr auto operator()(const value_type& value, const regex<Regex>& subrule) const
 		{
-			return regex_result_t<T>();
+			return match_result_t<T>();
 		}
-		constexpr regex_result_t<T> operator()(const value_type& value, const regex& subrule) const
+		constexpr match_result_t<T> operator()(const value_type& value, const regex& subrule) const
 		{
 			if(subrule == *this)
 				return subrule(value);
@@ -194,16 +194,16 @@ namespace utils {
 		}
 		constexpr auto operator()(value_type index) const
 		{
-			regex_result_t<T> result;
+			match_result_t<T> result;
 			result.insert(result.end(), values[index]);
 			return result;
 		}
 		template<class Regex>
 		constexpr auto operator()(const value_type& value, const regex<Regex>& subrule) const
 		{
-			return regex_result_t<T>();
+			return match_result_t<T>();
 		}
-		constexpr regex_result_t<T> operator()(const value_type& value, const regex& subrule) const
+		constexpr match_result_t<T> operator()(const value_type& value, const regex& subrule) const
 		{
 			if(subrule == *this)
 				return subrule(value);
@@ -268,16 +268,16 @@ namespace utils {
 		}
 		constexpr auto operator()(const value_type& value) const
 		{
-			regex_result_t<T> result;
+			match_result_t<T> result;
 			result.insert(result.end(), value);
 			return result;
 		}
 		template<class Regex>
 		constexpr auto operator()(const value_type& value, const regex<Regex>& subrule) const
 		{
-			return regex_result_t<T>();
+			return match_result_t<T>();
 		}
-		constexpr regex_result_t<T> operator()(const value_type& value, const regex& subrule) const
+		constexpr match_result_t<T> operator()(const value_type& value, const regex& subrule) const
 		{
 			if(subrule == *this)
 				return subrule(value);
@@ -402,10 +402,10 @@ namespace utils {
 		}
 		constexpr auto operator()(const value_type& value, const regex& subrule) const
 		{
-			using regex_result_t = decltype(subrule(value));
+			using match_result_t = decltype(subrule(value));
 			if(subrule == *this)
 				return subrule(value);
-			return regex_result_t{};
+			return match_result_t{};
 		}
 		friend constexpr bool operator==(const regex& a, const regex& b) noexcept
 		{
@@ -482,8 +482,8 @@ namespace utils {
 			template<class Value, class Match>
 			constexpr auto forsubrules(const Value& value, const Match& match, const std::tuple<>&) const
 			{
-				using regex_result_t = decltype(match(value));
-				return regex_result_t{};
+				using match_result_t = decltype(match(value));
+				return match_result_t{};
 			}
 
 			template<class Value, std::size_t I>
@@ -596,10 +596,10 @@ namespace utils {
 		}
 		constexpr auto operator()(const value_type& value, const regex& subrule) const
 		{
-			using regex_result_t = decltype(subrule(value));
+			using match_result_t = decltype(subrule(value));
 			if(subrule == *this)
 				return subrule(value);
-			return regex_result_t{};
+			return match_result_t{};
 		}
 		friend constexpr bool operator==(const regex& a, const regex& b) noexcept
 		{
