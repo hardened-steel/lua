@@ -1,55 +1,10 @@
 #define BOOST_TEST_MODULE utils channel unit test
 #include <boost/test/included/unit_test.hpp>
 
-#include <iostream>
 #include <utils/channel/channel.hpp>
 #include <utils/channel/input.hpp>
 #include <utils/channel/output.hpp>
 #include <utils/channel/transform.hpp>
-
-class foo
-{
-public:
-	std::string name;
-public:
-	foo(std::string name) noexcept
-	: name(std::move(name))
-	{}
-	foo(const foo& other)
-	: name(other.name)
-	{
-		std::cout << "foo::copy construcor: " << name << std::endl;
-	}
-	foo(foo&& other) noexcept
-	: name(std::move(other.name))
-	{
-		std::cout << "foo::move construcor: " << name << std::endl;
-	}
-	foo& operator=(foo& other) noexcept
-	{
-		if(this != &other) {
-			std::cout << "foo::move assign: " << name << " = " << other.name << std::endl;
-			name = std::move(other.name);
-		}
-		return *this;
-	}
-	foo& operator=(const foo& other)
-	{
-		if(this != &other) {
-			std::cout << "foo::copy assign: " << name << " = " << other.name << std::endl;
-			name = other.name;
-		}
-		return *this;
-	}
-	~foo()
-	{
-		std::cout << "foo::destroy: " << name << std::endl;
-	}
-	friend std::ostream& operator<<(std::ostream& stream, const foo& value)
-	{
-		return stream << "{foo: " << value.name << "}";
-	}
-};
 
 namespace {
 
@@ -72,8 +27,6 @@ BOOST_AUTO_TEST_SUITE(channel)
 
 BOOST_AUTO_TEST_CASE(base)
 {
-	std::vector<foo> result;
-	result.reserve(2);
 	const char hello[] = "hello world";
 	utils::channel::input ichannel{hello};
 	BOOST_TEST(ichannel.get() == 'h');

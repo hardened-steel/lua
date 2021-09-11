@@ -10,7 +10,7 @@ namespace utils::channel {
 	public:
 		virtual ~ochannel() = default;
 		virtual void put(T) = 0;
-		virtual operator bool() const noexcept = 0;
+		virtual bool closed() const noexcept = 0;
 		virtual void close() = 0;
 	public:
 		class iterator
@@ -27,7 +27,7 @@ namespace utils::channel {
 			}
 			iterator& operator++() noexcept
 			{
-				if(*channel) 
+				if(!channel->closed()) 
 					return *this;
 				channel = nullptr;
 				return *this;

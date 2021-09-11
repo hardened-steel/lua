@@ -16,4 +16,16 @@ namespace utils::channel {
 			}
 		}
 	}
+	template<class OChannel, class IChannel>
+	void operator << (OChannel ochannel, IChannel ichannel)
+	{
+		for(decltype(auto) value: irange(ichannel)) {
+			if(ochannel) {
+				ochannel.put(std::move(value));
+			} else {
+				ochannel.close();
+				break;
+			}
+		}
+	}
 }

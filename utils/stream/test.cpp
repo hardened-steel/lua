@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(file)
 	const fs::path path = "fstream-test.data";
 	TouchFile(path, "hello from file");
 	utils::stream::ifstream file(path);
-	auto value = file.get(1024);
+	auto value = file.get();
 	BOOST_TEST(value == "hello from file"_bytes);
 }
 

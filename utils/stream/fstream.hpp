@@ -14,11 +14,7 @@ namespace utils::stream {
 	public:
 		using value_type = utils::buffer::owner<const std::byte>;
 		void get(utils::buffer::view<std::byte>&) override;
-		utils::buffer::owner<const std::byte> get(std::size_t count) override;
-		utils::buffer::owner<const std::byte> get() override
-		{
-			return get(0);
-		}
+		utils::buffer::owner<const std::byte> get() override;
 		void close() override;
 		bool closed() const noexcept override;
 	};

@@ -33,20 +33,20 @@ namespace utils::stream {
 
 	void ifstream::get(utils::buffer::view<std::byte>& view)
 	{
-		auto chunk = get(view.size());
+		auto chunk = mmap.first(view.size());
 		view = view.first(chunk.size());
 		std::copy(chunk.begin(), chunk.end(), view.data());
 	}
 
-	utils::buffer::owner<const std::byte> ifstream::get(std::size_t count)
+	utils::buffer::owner<const std::byte> ifstream::get()
 	{
-		if(count)
-			return mmap.first(std::min(count, mmap.size()));
-		return std::move(mmap);
+		constexpr auto chunk = 4u * 1024u * 1024u;
+		return mmap.first(chunk);
 	}
 
 	void ifstream::close()
 	{
+		mmap = buffer::owner<const std::byte>();
 	}
 
 	bool ifstream::closed() const noexcept
