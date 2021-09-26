@@ -29,10 +29,14 @@ jobs:
           }
 
     steps:
-    - name: Install boost
-      uses: MarkusJx/install-boost@v2.0.0
-      id: install-boost
+    - name: Build Boost
+      uses: egor-tensin/build-boost@v1
+      id: boost
       with:
+        version: 1.75.0
+        libraries: program_options system date_time headers json fiber container serialization stacktrace iostreams regex
+        platform: x64
+        configuration: Release
         boost_version: 1.75.0
 
     - uses: actions/checkout@v1
@@ -96,8 +100,6 @@ jobs:
           ${{ matrix.config.name }}-ccache-
     - name: Configure
       shell: cmake -P {0}
-      env:
-        BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
       run: |
         set(ENV{CC} ${{ matrix.config.cc }})
         set(ENV{CXX} ${{ matrix.config.cxx }})
@@ -123,8 +125,8 @@ jobs:
             -S .
             -B build
             -D CMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
-            -D "BOOST_ROOT=${{ steps.install-boost.outputs.BOOST_ROOT }}"
-            -D "BOOST_LIBRARYDIR=${{steps.install-boost.outputs.BOOST_ROOT}}/lib"
+            -D "BOOST_ROOT=${{ steps.boost.outputs.root }}"
+            -D "BOOST_LIBRARYDIR=${{ steps.boost.outputs.librarydir }}"
             -G Ninja
             -D CMAKE_MAKE_PROGRAM=ninja
             -D CMAKE_C_COMPILER_LAUNCHER=ccache
@@ -136,8 +138,6 @@ jobs:
         endif()
     - name: Build
       shell: cmake -P {0}
-      env:
-        BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
       run: |
         set(ENV{NINJA_STATUS} "[%f/%t %o/sec] ")
         if ("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
