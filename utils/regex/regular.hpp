@@ -49,7 +49,18 @@ namespace utils {
 	public:
 		using input_type = T;
 		struct value_type {};
-		using result_t = std::optional<value_type>;
+		struct result_t
+		{
+			bool value = false;
+			operator bool() const noexcept
+			{
+				return value;
+			}
+			value_type operator*() const noexcept
+			{
+				return value_type{};
+			}
+		};
 	public:
 		template<class Begin, class End>
 		constexpr result_t operator()(Begin& it, End vend) const
@@ -60,14 +71,14 @@ namespace utils {
 			for(; vit != vend && mit != mend; ++vit, ++mit)
 			{
 				if(*vit != *mit)
-					return std::nullopt;
+					return result_t{false};
 			}
 			if(mit == mend)
 			{
 				it += Size;
-				return std::make_optional<value_type>();
+				return result_t{true};
 			}
-			return std::nullopt;
+			return result_t{false};
 		}
 		template<std::size_t ISize>
 		constexpr result_t operator()(const T(&value)[ISize]) const
@@ -78,7 +89,7 @@ namespace utils {
 				if(beging == end)
 					return result;
 			}
-			return std::nullopt;
+			return result_t{false};
 		}
 		constexpr auto operator()(value_type) const
 		{
@@ -100,25 +111,6 @@ namespace utils {
 			return std::equal(a.values.begin(), a.values.end(), b.values.begin(), b.values.end());
 		}
 	};
-
-	template<class T, bool i, bool e>
-	struct regex_array_index
-	{
-		using type = std::size_t;
-	};
-	template<class T, bool e>
-	struct regex_array_index<T, true, e>
-	{
-		using type = std::make_unsigned_t<T>;
-	};
-	template<class T>
-	struct regex_array_index<T, false, true>
-	{
-		using type = std::underlying_type_t<T>;
-	};
-
-	template<class T>
-	using regex_array_index_t = typename regex_array_index<T, std::is_integral_v<T>, std::is_enum_v<T>>::type;
 
 	template<std::size_t max>
 	struct regex_index_from_max_value
@@ -164,7 +156,18 @@ namespace utils {
 	public:
 		using input_type = T;
 		using value_type = index_t;
-		using result_t = std::optional<value_type>;
+		struct result_t
+		{
+			value_type value = Size;
+			operator bool() const noexcept
+			{
+				return value < Size;
+			}
+			value_type operator*() const noexcept
+			{
+				return value;
+			}
+		};
 	public:
 		template<class Begin, class End>
 		constexpr result_t operator()(Begin& it, End end) const
@@ -173,13 +176,14 @@ namespace utils {
 			const auto mend = values.end();
 			if(it != end)
 			{
-				if(auto found = std::find(mbegin, mend, *it); found != mend)
-				{
-					it += 1;
-					return std::make_optional<value_type>(found - mbegin);
+				for(index_t i = 0; i < Size; ++i) {
+					if(values[i] == *it) {
+						it += 1;
+						return result_t{i};
+					}
 				}
 			}
-			return std::nullopt;
+			return result_t{};
 		}
 		template<std::size_t ISize>
 		constexpr result_t operator()(const T(&value)[ISize]) const
@@ -190,7 +194,7 @@ namespace utils {
 				if(beging == end)
 					return result;
 			}
-			return std::nullopt;
+			return result_t{};
 		}
 		constexpr auto operator()(value_type index) const
 		{

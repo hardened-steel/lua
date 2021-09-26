@@ -29,17 +29,13 @@ jobs:
           }
 
     steps:
-    - name: Build Boost
-      id: boost
-      uses: egor-tensin/build-boost@v1
+    - name: Install boost
+      uses: MarkusJx/install-boost@v2.0.0
+      id: install-boost
       with:
-        version: 1.75.0
-        libraries: program_options system test date_time headers json fiber container serialization stacktrace iostreams regex
-        platform: x64
-        configuration: Release
+        boost_version: 1.75.0
 
     - uses: actions/checkout@v1
-
     - name: Download Ninja and CMake
       shell: cmake -P {0}
       run: |
@@ -196,11 +192,9 @@ jobs:
     - name: Install Strip
       run: cmake --install build --prefix instdir --strip
 
-
     - name: Pack
       working-directory: instdir
       run: cmake -E tar cfv ../${{ matrix.config.artifact }} --format=7zip .
-
 
     - name: Upload
       uses: actions/upload-artifact@v1

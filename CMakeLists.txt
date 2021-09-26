@@ -8,18 +8,16 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 include(CTest)
+
 enable_testing()
 
-find_package(Boost 1.75.0 COMPONENTS system date_time unit_test_framework iostreams REQUIRED)
+find_package(Boost 1.75.0 COMPONENTS iostreams REQUIRED)
+find_package(Catch2 3 REQUIRED)
 
 add_subdirectory(utils)
 #add_subdirectory(lexer)
 
 find_package(Threads)
-
-add_library(${PROJECT_NAME} lua.cpp)
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
-target_link_libraries(${PROJECT_NAME} ${BOOST_LIBRARIES})
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
