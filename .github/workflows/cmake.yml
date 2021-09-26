@@ -96,6 +96,8 @@ jobs:
           ${{ matrix.config.name }}-ccache-
     - name: Configure
       shell: cmake -P {0}
+      env:
+        BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
       run: |
         set(ENV{CC} ${{ matrix.config.cc }})
         set(ENV{CXX} ${{ matrix.config.cxx }})
@@ -134,6 +136,8 @@ jobs:
         endif()
     - name: Build
       shell: cmake -P {0}
+      env:
+        BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
       run: |
         set(ENV{NINJA_STATUS} "[%f/%t %o/sec] ")
         if ("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
