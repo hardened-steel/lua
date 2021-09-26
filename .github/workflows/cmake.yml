@@ -123,8 +123,8 @@ jobs:
             -S .
             -B build
             -D CMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
-            -D "BOOST_ROOT=${{ steps.boost.outputs.root }}"
-            -D "BOOST_LIBRARYDIR=${{ steps.boost.outputs.librarydir }}"
+            -D "BOOST_ROOT=${{ steps.install-boost.outputs.BOOST_ROOT }}"
+            -D "BOOST_LIBRARYDIR=${{steps.install-boost.outputs.BOOST_ROOT}}/lib"
             -G Ninja
             -D CMAKE_MAKE_PROGRAM=ninja
             -D CMAKE_C_COMPILER_LAUNCHER=ccache
