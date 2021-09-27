@@ -1,6 +1,4 @@
-#define BOOST_TEST_MODULE utils regex unit test
-#include <boost/test/included/unit_test.hpp>
-#include <iostream>
+#include <catch2/catch_test_macros.hpp>
 
 #include <utils/regex/regular.hpp>
 #include <utils/regex/tokenizer.hpp>
@@ -30,54 +28,52 @@ namespace utils
 	};
 }
 
-BOOST_AUTO_TEST_SUITE(regex)
-
-BOOST_AUTO_TEST_CASE(base)
+TEST_CASE("test utils regex", "[regex]")
 {
 	const auto& match = utils::match;
-	BOOST_CHECK(match("abc")("abc"));
-	BOOST_CHECK(!match("abc")("ab"));
-	BOOST_CHECK((match("abc") | match("cba"))("abc"));
-	BOOST_CHECK((match("abc") | match("cba"))("cba"));
-	BOOST_CHECK(!(match("abc") | match("cba"))("def"));
-	BOOST_CHECK((*match("a"))("aaa"));
+	REQUIRE(match("abc")("abc"));
+	REQUIRE(!match("abc")("ab"));
+	REQUIRE((match("abc") | match("cba"))("abc"));
+	REQUIRE((match("abc") | match("cba"))("cba"));
+	REQUIRE(!(match("abc") | match("cba"))("def"));
+	REQUIRE((*match("a"))("aaa"));
 	{
 		constexpr auto regex = match("ab") & !match("c") & match("d");
-		BOOST_CHECK(regex("abd"));
-		BOOST_CHECK(regex("abcd"));
-		BOOST_CHECK(!regex("abed"));
+		REQUIRE(regex("abd"));
+		REQUIRE(regex("abcd"));
+		REQUIRE(!regex("abed"));
 		const auto result = regex("abcd");
-		BOOST_CHECK(regex(*result) == "abcd");
+		REQUIRE(regex(*result) == "abcd");
 	}
 	{
 		constexpr auto regex = match("ab") & +match("c") & match("d");
-		BOOST_CHECK(!regex("abd"));
-		BOOST_CHECK(regex("abcd"));
-		BOOST_CHECK(regex("abccd"));
-		BOOST_CHECK(regex("abcccd"));
-		BOOST_CHECK(!regex("abce"));
+		REQUIRE(!regex("abd"));
+		REQUIRE(regex("abcd"));
+		REQUIRE(regex("abccd"));
+		REQUIRE(regex("abcccd"));
+		REQUIRE(!regex("abce"));
 	}
 	{
 		constexpr auto regex = match["abcdef"];
-		BOOST_CHECK(regex("a"));
-		BOOST_CHECK(regex("b"));
-		BOOST_CHECK(!regex("g"));
+		REQUIRE(regex("a"));
+		REQUIRE(regex("b"));
+		REQUIRE(!regex("g"));
 	}
 	{
 		constexpr auto symbol = match('a', 'z') | match('A', 'Z') | match("_");
 		constexpr auto number = match["1234567890"];
 		constexpr auto regex = symbol & *(symbol | number);
-		BOOST_CHECK(regex("some_value"));
-		BOOST_CHECK(regex("_"));
-		BOOST_CHECK(regex("LegalIdentifier"));
-		BOOST_CHECK(!regex("122_bytes"));
-		BOOST_CHECK(!regex(" value"));
+		REQUIRE(regex("some_value"));
+		REQUIRE(regex("_"));
+		REQUIRE(regex("LegalIdentifier"));
+		REQUIRE(!regex("122_bytes"));
+		REQUIRE(!regex(" value"));
 		const auto result = regex("identifier");
-		BOOST_CHECK(regex(*result) == "identifier");
+		REQUIRE(regex(*result) == "identifier");
 	}
 }
 
-BOOST_AUTO_TEST_CASE(subrules)
+TEST_CASE("test utils regex", "[regex]")
 {
 	const auto& match = utils::match;
 	{
@@ -85,16 +81,16 @@ BOOST_AUTO_TEST_CASE(subrules)
 		constexpr auto number = match('0', '9');
 		constexpr auto regex = symbol | number;
 		const auto token = regex("1");
-		BOOST_CHECK(regex(*token, number) == "1");
-		BOOST_CHECK(regex(*token, number) != "0");
+		REQUIRE(regex(*token, number) == "1");
+		REQUIRE(regex(*token, number) != "0");
 	}
 	{
 		constexpr auto symbol = match("_") | match('a', 'z') | match('A', 'Z');
 		constexpr auto number = match["1234567890"];
 		constexpr auto identifier = symbol & *(symbol | number);
 		const auto token = identifier("some_value_0123");
-		BOOST_TEST(identifier(*token, symbol) == "some_value_");
-		BOOST_TEST(identifier(*token, number) == "0123");
+		REQUIRE(identifier(*token, symbol) == "some_value_");
+		REQUIRE(identifier(*token, number) == "0123");
 	}
 }
 
@@ -317,7 +313,7 @@ namespace {
 	}
 }
 
-BOOST_AUTO_TEST_CASE(lexer)
+TEST_CASE("test utils lexer", "[lexer]")
 {
 	const auto& match = utils::match;
 	constexpr auto symbol = match('a', 'z') | match('A', 'Z') | match["_"];
@@ -402,5 +398,3 @@ struct converter<unsigned>
 			return number_range(boost::lexical_cast<std::string>(value / 1000'000'000f), 'G');
 	}
 };*/
-
-BOOST_AUTO_TEST_SUITE_END()
