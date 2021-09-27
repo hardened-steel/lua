@@ -28,7 +28,7 @@ namespace utils
 	};
 }
 
-TEST_CASE("test utils regex", "[regex]")
+TEST_CASE("test base utils regex", "[utils], [regex]")
 {
 	const auto& match = utils::match;
 	REQUIRE(match("abc")("abc"));
@@ -73,7 +73,7 @@ TEST_CASE("test utils regex", "[regex]")
 	}
 }
 
-TEST_CASE("test utils regex", "[regex]")
+TEST_CASE("utils regex results", "[utils], [regex]")
 {
 	const auto& match = utils::match;
 	{

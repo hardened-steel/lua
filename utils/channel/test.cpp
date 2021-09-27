@@ -21,7 +21,7 @@ namespace {
 	}
 }
 
-TEST_CASE("test utils channel", "[channel]")
+TEST_CASE("utils channel from literal and constants", "[utils], [channel]")
 {
 	const char hello[] = "hello world";
 	utils::channel::input ichannel{hello};
@@ -32,7 +32,7 @@ TEST_CASE("test utils channel", "[channel]")
 	REQUIRE((utils::channel::input{hello} >> vectorize) == (std::vector<char>(hello, hello + sizeof(hello))));
 }
 
-TEST_CASE("test utils channel", "[transform]")
+TEST_CASE("test utils channel with transform function", "[utils], [channel], [transform]")
 {
 	auto pow2 = [](auto& value)
 	{
