@@ -49,5 +49,4 @@ namespace utils::channel {
 	template<class T> input(std::initializer_list<T> init) -> input<const T&, const T*>;
 	template<class T, std::size_t N> input(T(&&)[N]) -> input<T&, T*>;
 	template<class T, std::size_t N> input(const T(&)[N]) -> input<const T&, const T*>;
-
 }

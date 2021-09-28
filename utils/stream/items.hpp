@@ -50,7 +50,7 @@ namespace utils {
 			iterator(const iterator& other) noexcept
 			: ichannel(other.ichannel)
 			, record(other.record)
-			, index(index)
+			, index(other.index)
 			{}
 			iterator& operator=(const iterator& other) noexcept
 			{

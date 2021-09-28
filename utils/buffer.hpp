@@ -74,12 +74,14 @@ namespace utils {
 		}
 		view first(std::size_t count) noexcept
 		{
+			count = std::min(count, size());
 			view result(data(), data() + count);
 			begin_ += count;
 			return result;
 		}
 		view last(std::size_t count) noexcept
 		{
+			count = std::min(count, size());
 			view result(end() - count, end());
 			end_ -= count;
 			return result;
