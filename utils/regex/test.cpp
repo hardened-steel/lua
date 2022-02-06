@@ -43,7 +43,7 @@ TEST_CASE("test base utils regex", "[utils], [regex]")
 		REQUIRE(regex("abcd"));
 		REQUIRE(!regex("abed"));
 		const auto result = regex("abcd");
-		REQUIRE(regex(*result) == "abcd");
+		REQUIRE(utils::generate(regex, *result) == "abcd");
 	}
 	{
 		constexpr auto regex = match("ab") & +match("c") & match("d");
@@ -51,6 +51,7 @@ TEST_CASE("test base utils regex", "[utils], [regex]")
 		REQUIRE(regex("abcd"));
 		REQUIRE(regex("abccd"));
 		REQUIRE(regex("abcccd"));
+		REQUIRE(utils::parse(regex, "abcccd"));
 		REQUIRE(!regex("abce"));
 	}
 	{
@@ -88,10 +89,23 @@ TEST_CASE("utils regex results", "[utils], [regex]")
 		constexpr auto symbol = match("_") | match('a', 'z') | match('A', 'Z');
 		constexpr auto number = match["1234567890"];
 		constexpr auto identifier = symbol & *(symbol | number);
-		const auto token = identifier("some_value_0123");
+		const auto token = utils::parse(identifier, "some_value_0123");
 		REQUIRE(identifier(*token, symbol) == "some_value_");
 		REQUIRE(identifier(*token, number) == "0123");
 	}
+}
+
+TEST_CASE("utils regex change output type", "[utils], [regex]")
+{
+	const auto& match = utils::match;
+	constexpr auto letter  = match("_") | match('a', 'z') | match('A', 'Z');
+	constexpr auto dec     = match('0', '9');
+	constexpr auto hex     = dec | match('A', 'F') | match('a', 'f');
+	constexpr auto unicode = match("u") & hex & hex & hex & hex;
+	constexpr auto escape  = match("\\") & (match[R"(/\"bfnrt)"] | unicode);
+	constexpr auto anychar = escape | match(char(0x20), char(0x21)) | match(char(0x23), char(0x5b)) | match(char(0x5d), char(0xff));
+	constexpr auto string  = match("\"") & *(anychar) & match("\"");
+	INFO("sizeof json string parser = " << sizeof(string));
 }
 
 namespace {

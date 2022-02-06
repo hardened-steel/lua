@@ -9,6 +9,8 @@
 
 namespace utils {
 
+	struct from_params {};
+
 	template<class T>
 	class regex;
 
@@ -26,6 +28,97 @@ namespace utils {
 
 	template<class T>
 	using match_result_t = typename match_result<T>::type;
+
+	template<class T>
+	struct match_any {};
+
+	struct match_any_t
+	{
+		template<class Begin, class End>
+		constexpr auto operator()(Begin& it, End end) const
+		{
+			return regex<match_any<typename std::iterator_traits<Begin>::value_type>>{}(it, end);
+		}
+		template<class T>
+		constexpr auto operator()(T value) const
+		{
+			match_result_t<T> result;
+			result.emplace_back(std::move(value));
+			return result;
+		}
+		template<class T, class Regex>
+		constexpr auto operator()(const T&, const regex<Regex>&) const
+		{
+			return match_result_t<T>();
+		}
+		template<class T>
+		constexpr match_result_t<T> operator()(const T& value, const match_any_t& subrule) const
+		{
+			if(subrule == *this)
+				return subrule(value);
+			return {};
+		}
+		friend constexpr bool operator==(const match_any_t&, const match_any_t&) noexcept
+		{
+			return true;
+		}
+		template<class T>
+		friend constexpr bool operator==(const match_any_t&, const regex<match_any<T>>&) noexcept
+		{
+			return true;
+		}
+		template<class T>
+		friend constexpr bool operator==(const regex<match_any<T>>&, const match_any_t&) noexcept
+		{
+			return true;
+		}
+	};
+
+	template<class T>
+	class regex<match_any<T>>
+	{
+	public:
+		constexpr regex() = default;
+		regex(regex&&) = default;
+		regex(const regex&) = default;
+		regex& operator=(const regex&) = default;
+		regex& operator=(regex&&) = default;
+	public:
+		using input_type = T;
+		using value_type = T;
+		using result_t = std::optional<T>;
+	public:
+		template<class Begin, class End>
+		constexpr result_t operator()(Begin& it, End end) const
+		{
+			if(it != end)
+			{
+				return *it++;
+			}
+			return std::nullopt;
+		}
+		constexpr auto operator()(value_type value) const
+		{
+			match_result_t<T> result;
+			result.emplace_back(std::move(value));
+			return result;
+		}
+		template<class Regex>
+		constexpr auto operator()(const value_type&, const regex<Regex>&) const
+		{
+			return match_result_t<T>();
+		}
+		constexpr match_result_t<T> operator()(const value_type& value, const regex& subrule) const
+		{
+			if(subrule == *this)
+				return subrule(value);
+			return {};
+		}
+		friend constexpr bool operator==(const regex&, const regex&) noexcept
+		{
+			return true;
+		}
+	};
 
 	template<class T, std::size_t Size>
 	struct match_sequence_t {};
@@ -52,13 +145,17 @@ namespace utils {
 		struct result_t
 		{
 			bool value = false;
-			operator bool() const noexcept
+			constexpr operator bool() const noexcept
 			{
 				return value;
 			}
-			value_type operator*() const noexcept
+			constexpr value_type operator*() const noexcept
 			{
 				return value_type{};
+			}
+			friend constexpr bool operator==(const result_t& a, const result_t& b) noexcept
+			{
+				return a.value == b.value;
 			}
 		};
 	public:
@@ -159,11 +256,11 @@ namespace utils {
 		struct result_t
 		{
 			value_type value = Size;
-			operator bool() const noexcept
+			constexpr operator bool() const noexcept
 			{
 				return value < Size;
 			}
-			value_type operator*() const noexcept
+			constexpr value_type operator*() const noexcept
 			{
 				return value;
 			}
@@ -235,7 +332,7 @@ namespace utils {
 		T from, to;
 	public:
 		constexpr regex(T from, T to) noexcept
-		: from(from), to(to)
+		: from(std::move(from)), to(std::move(to))
 		{}
 		regex(regex&&) = default;
 		regex(const regex&) = default;
@@ -312,7 +409,9 @@ namespace utils {
 				return regex<match_range_t<T>>(from, to);
 			return regex<match_range_t<T>>(to, from);
 		}
-	} const match;
+		
+		match_any_t any;
+	} constexpr match;
 
 	template<class ...Regexs>
 	struct match_or_t;
@@ -345,14 +444,14 @@ namespace utils {
 		
 		std::tuple<Regexs...> matchs;
 	public:
-		regex(regex&&) = default;
-		regex(const regex&) = default;
-		regex& operator=(const regex&) = default;
-		regex& operator=(regex&&) = default;
+		constexpr regex(regex&&) = default;
+		constexpr regex(const regex&) = default;
+		constexpr regex& operator=(const regex&) = default;
+		constexpr regex& operator=(regex&&) = default;
 	public:
 		template<class ...IRegexs>
-		constexpr regex(const regex<IRegexs>& ...matchs) noexcept
-		: matchs(matchs...)
+		constexpr regex(tag_t<from_params>, IRegexs&& ...matchs) noexcept(std::is_nothrow_constructible_v<std::tuple<Regexs...>, IRegexs...>)
+		: matchs(std::forward<IRegexs>(matchs)...)
 		{}
 		using value_type = typename regex<match_or_t<std::tuple<Regexs...>, std::make_index_sequence<sizeof...(Regexs)>>>::value_type;
 		using result_t = std::optional<value_type>;
@@ -518,7 +617,7 @@ namespace utils {
 		regex& operator=(regex&&) = default;
 	public:
 		template<class ...IRegexs>
-		constexpr regex(const regex<IRegexs>& ...matchs) noexcept
+		constexpr regex(tag_t<from_params>, IRegexs&& ...matchs) noexcept(std::is_nothrow_constructible_v<std::tuple<Regexs...>, IRegexs...>)
 		: matchs(matchs...)
 		{}
 		using value_type = std::tuple<typename Regexs::value_type...>;
@@ -620,7 +719,7 @@ namespace utils {
 			template<std::size_t... Ia, std::size_t... Ib>
 			static constexpr auto concat(regex<match_or_t<ARegexs...>>&& a, const std::index_sequence<Ia...>&, regex<match_or_t<BRegexs...>>&& b, const std::index_sequence<Ib...>&) noexcept
 			{
-				return regex<match_or_t<ARegexs..., BRegexs...>>(std::move(std::get<Ia>(a.matchs))..., std::move(std::get<Ib>(b.matchs))...);
+				return regex<match_or_t<ARegexs..., BRegexs...>>(tag<from_params>, std::move(std::get<Ia>(a.matchs))..., std::move(std::get<Ib>(b.matchs))...);
 			}
 		public:
 			static constexpr auto concat(regex<match_or_t<ARegexs...>> a, regex<match_or_t<BRegexs...>> b) noexcept
@@ -631,7 +730,7 @@ namespace utils {
 			template<std::size_t... Ia, std::size_t... Ib>
 			static constexpr auto concat(regex<match_and_t<ARegexs...>>&& a, const std::index_sequence<Ia...>&, regex<match_and_t<BRegexs...>>&& b, const std::index_sequence<Ib...>&) noexcept
 			{
-				return regex<match_and_t<ARegexs..., BRegexs...>>(std::move(std::get<Ia>(a.matchs))..., std::move(std::get<Ib>(b.matchs))...);
+				return regex<match_and_t<ARegexs..., BRegexs...>>(tag<from_params>, std::move(std::get<Ia>(a.matchs))..., std::move(std::get<Ib>(b.matchs))...);
 			}
 		public:
 			static constexpr auto concat(regex<match_and_t<ARegexs...>> a, regex<match_and_t<BRegexs...>> b) noexcept
@@ -644,17 +743,34 @@ namespace utils {
 	template<class RegexA, class RegexB>
 	constexpr auto operator|(regex<RegexA> a, regex<RegexB> b) noexcept
 	{
-		return regex<match_or_t<regex<RegexA>, regex<RegexB>>>(std::move(a), std::move(b));
+		return regex<match_or_t<regex<RegexA>, regex<RegexB>>>(tag<from_params>, std::move(a), std::move(b));
+	}
+	template<class Regex>
+	constexpr auto operator|(regex<Regex> a, const match_any_t&) noexcept
+	{
+		using any_t = regex<match_any<typename regex<Regex>::input_type>>;
+		return regex<match_or_t<regex<Regex>, any_t>>(tag<from_params>, std::move(a), any_t{});
+	}
+	template<class Regex>
+	constexpr auto operator|(const match_any_t&, regex<Regex>) noexcept
+	{
+		using any_t = regex<match_any<typename regex<Regex>::input_type>>;
+		return any_t{};
+	}
+	template<class ...Regexs, class T, class RegexB>
+	constexpr auto operator|(regex<match_or_t<Regexs..., regex<match_any<T>>>> a, regex<RegexB>) noexcept
+	{
+		return std::move(a);
 	}
 	template<class ...Regexs, class RegexB>
 	constexpr auto operator|(regex<match_or_t<Regexs...>> a, regex<RegexB> b) noexcept
 	{
-		return std::move(a) | regex<match_or_t<regex<RegexB>>>(std::move(b));
+		return std::move(a) | regex<match_or_t<regex<RegexB>>>(tag<from_params>, std::move(b));
 	}
 	template<class RegexA, class ...Regexs>
 	constexpr auto operator|(regex<RegexA> a, regex<match_or_t<Regexs...>> b) noexcept
 	{
-		return regex<match_or_t<regex<RegexA>>>(std::move(a)) | std::move(b);
+		return regex<match_or_t<regex<RegexA>>>(tag<from_params>, std::move(a)) | std::move(b);
 	}
 	template<class ...ARegexs, class ...BRegexs>
 	constexpr auto operator|(regex<match_or_t<ARegexs...>> a, regex<match_or_t<BRegexs...>> b) noexcept
@@ -674,17 +790,29 @@ namespace utils {
 	template<class RegexA, class RegexB>
 	constexpr auto operator&(regex<RegexA> a, regex<RegexB> b) noexcept
 	{
-		return regex<match_and_t<regex<RegexA>, regex<RegexB>>>(std::move(a), std::move(b));
+		return regex<match_and_t<regex<RegexA>, regex<RegexB>>>(tag<from_params>, std::move(a), std::move(b));
+	}
+	template<class Regex>
+	constexpr auto operator&(regex<Regex> a, const match_any_t&) noexcept
+	{
+		using any_t = regex<match_any<typename regex<Regex>::input_type>>;
+		return regex<match_and_t<regex<Regex>, any_t>>(tag<from_params>, std::move(a), any_t{});
+	}
+	template<class Regex>
+	constexpr auto operator&(const match_any_t&, regex<Regex> a) noexcept
+	{
+		using any_t = regex<match_any<typename regex<Regex>::input_type>>;
+		return regex<match_and_t<any_t, regex<Regex>>>(tag<from_params>, any_t{}, std::move(a));
 	}
 	template<class ...Regexs, class RegexB>
 	constexpr auto operator&(regex<match_and_t<Regexs...>> a, regex<RegexB> b) noexcept
 	{
-		return std::move(a) & regex<match_and_t<regex<RegexB>>>(std::move(b));
+		return std::move(a) & regex<match_and_t<regex<RegexB>>>(tag<from_params>, std::move(b));
 	}
 	template<class RegexA, class ...Regexs>
 	constexpr auto operator&(regex<RegexA> a, regex<match_and_t<Regexs...>> b) noexcept
 	{
-		return regex<match_and_t<regex<RegexA>>>(std::move(a)) & std::move(b);
+		return regex<match_and_t<regex<RegexA>>>(tag<from_params>, std::move(a)) & std::move(b);
 	}
 	template<class ...ARegexs, class ...BRegexs>
 	constexpr auto operator&(regex<match_and_t<ARegexs...>> a, regex<match_and_t<BRegexs...>> b) noexcept
@@ -896,6 +1024,20 @@ namespace utils {
 	constexpr auto operator +(regex<Match> match) noexcept
 	{
 		return regex<match_one_plus<regex<Match>>>(std::move(match));
+	}
+
+	template<class Match, class T, std::size_t ISize>
+	constexpr auto parse(const regex<Match>& regex, const T(&value)[ISize])
+	{
+		auto beging = &value[0];
+		auto end = beging + ISize - 1;
+		return regex(beging, end);
+	}
+
+	template<class Match, class Value>
+	constexpr auto generate(const regex<Match>& regex, const Value& value)
+	{
+		return regex(value);
 	}
 
 }
