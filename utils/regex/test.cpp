@@ -5,6 +5,7 @@
 #include <utils/tag.hpp>
 #include <utils/demangler.hpp>
 #include <tuple>
+#include <variant>
 
 namespace utils
 {

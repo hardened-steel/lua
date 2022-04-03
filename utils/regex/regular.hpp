@@ -6,6 +6,7 @@
 #include <variant>
 #include <algorithm>
 #include <utils/tag.hpp>
+#include <utils/types/tuple.hpp>
 
 namespace utils {
 
@@ -431,7 +432,7 @@ namespace utils {
 		template<std::size_t I>
 		using tuple_value_type = typename std::tuple_element_t<I, tuple>::value_type;
 	public:
-		using value_type = std::variant<type_with_tag<tuple_value_type<Is>, tag_v<Is>>...>;
+		using value_type = std::variant<std::monostate, type_with_tag<tuple_value_type<Is>, tag_v<Is>>...>;
 	};
 
 	template<class ...Regexs>
@@ -454,20 +455,49 @@ namespace utils {
 		: matchs(std::forward<IRegexs>(matchs)...)
 		{}
 		using value_type = typename regex<match_or_t<std::tuple<Regexs...>, std::make_index_sequence<sizeof...(Regexs)>>>::value_type;
-		using result_t = std::optional<value_type>;
+		class result_t: public value_type
+		{
+		public:
+			using value_type::value_type;
+
+			result_t(std::nullopt_t) noexcept
+			: value_type(std::monostate{})
+			{}
+
+			operator bool() const noexcept
+			{
+				return value_type::index() == 0;
+			}
+			const result_t* operator*() const noexcept
+			{
+				return this;
+			}
+			result_t* operator*() noexcept
+			{
+				return this;
+			}
+			const result_t* operator->() const noexcept
+			{
+				return this;
+			}
+			result_t* operator->() noexcept
+			{
+				return this;
+			}
+		};
 	private:
 		template<class Begin, class End, std::size_t I>
 		constexpr result_t operator()(Begin& it, End end, const std::index_sequence<I>&) const
 		{
 			if(auto result = std::get<I>(matchs)(it, end))
-				return std::make_optional<value_type>(std::in_place_index<I>, *std::move(result));
+				return std::make_optional<value_type>(std::in_place_index<I>, std::move(*result));
 			return std::nullopt;
 		}
 		template<class Begin, class End, std::size_t I, std::size_t... Is>
 		constexpr result_t operator()(Begin& it, End end, const std::index_sequence<I, Is...>&) const
 		{
 			if(auto result = std::get<I>(matchs)(it, end))
-				return std::make_optional<value_type>(std::in_place_index<I>, *std::move(result));
+				return std::make_optional<value_type>(std::in_place_index<I>, std::move(*result));
 			return (*this)(it, end, std::index_sequence<Is...>());
 		}
 	public:
@@ -623,24 +653,12 @@ namespace utils {
 		using value_type = std::tuple<typename Regexs::value_type...>;
 		using result_t = std::optional<value_type>;
 	private:
-		template<std::size_t I, std::size_t... Is>
-		using result_type = std::tuple<std::tuple_element_t<I, value_type>, std::tuple_element_t<Is, value_type>...>;
-
-		template<class Begin, class End, std::size_t I>
-		constexpr std::optional<std::tuple<std::tuple_element_t<I, value_type>>> operator()(Begin& it, End end, const std::index_sequence<I>&) const
+		template<class Begin, class End, std::size_t... Is>
+		constexpr result_t operator()(Begin& it, End end, const std::index_sequence<Is...>&) const
 		{
-			if(auto result = std::get<I>(matchs)(it, end)) {
-				return std::make_optional<std::tuple<std::tuple_element_t<I, value_type>>>(std::make_tuple(*std::move(result)));
-			}
-			return std::nullopt;
-		}
-		template<class Begin, class End, std::size_t I, std::size_t... Is>
-		constexpr std::optional<result_type<I, Is...>> operator()(Begin& it, End end, const std::index_sequence<I, Is...>&) const
-		{
-			if(auto result = std::get<I>(matchs)(it, end)) {
-				if(auto tuple = (*this)(it, end, std::index_sequence<Is...>())) {
-					return std::make_optional<result_type<I, Is...>>(std::tuple_cat(std::make_tuple(*std::move(result)), *std::move(tuple)));
-				}
+			std::tuple results = {std::get<Is>(matchs)(it, end)...};
+			if((std::get<Is>(results) && ...)) {
+				return std::make_tuple(*std::move(std::get<Is>(results))...);
 			}
 			return std::nullopt;
 		}
@@ -662,18 +680,16 @@ namespace utils {
 			}
 			return std::nullopt;
 		}
-		template<std::size_t I>
-		constexpr auto operator()(const value_type& value, const std::index_sequence<I>&) const
+
+		template<std::size_t... Is>
+		constexpr auto operator()(const value_type& value, const std::index_sequence<Is...>&) const
 		{
-			return std::get<I>(matchs)(std::get<I>(value));
-		}
-		template<std::size_t I, std::size_t... Is>
-		constexpr auto operator()(const value_type& value, const std::index_sequence<I, Is...>&) const
-		{
-			auto head = std::get<I>(matchs)(std::get<I>(value));
-			auto tail = (*this)(value, std::index_sequence<Is...>{});
-			head.insert(head.end(), std::make_move_iterator(tail.begin()), std::make_move_iterator(tail.end()));
-			return head;
+			std::array results = {(std::get<Is>(matchs)(std::get<Is>(value)))...};
+			auto& result = results[0];
+			for(std::size_t i = 1; i < results.size(); ++i) {
+				result.insert(result.end(), std::make_move_iterator(results[i].begin()), std::make_move_iterator(results[i].end()));
+			}
+			return std::move(result);
 		}
 		constexpr auto operator()(const value_type& value) const
 		{
